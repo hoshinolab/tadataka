@@ -8,18 +8,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type settings struct {
-	InputDir            string `json:"input_dir"`
-	OutputDir           string `json:"output_dir"`
-	LatColumn           int    `json:"lat_column"`
-	LngColumn           int    `json:"lng_column"`
-	GridColumnName      string `json:"grid_column_name"`
-	NoHeader            bool   `json:"no_header"`
-	OverwriteOutputfile bool   `json:"overwrite_outputfile"`
-	Threads             int    `json:"threads"`
-	SlackURL            string `json:"slackURL"`
-}
-
 func init() {
 	olcCmd.PersistentFlags().String("config", "./config.json", "set config file path (JSON)")
 	rootCmd.AddCommand(olcCmd)
@@ -46,7 +34,7 @@ var olcCmd = &cobra.Command{
 
 		//TODO implement single file mode and multiple file mode (directory mode)
 
-		teststr := encoder.Encode(35.7720007, 139.7472105)
+		teststr := encoder.EncodeGridLevel(35.7720007, 139.7472105)
 		fmt.Println(teststr)
 		encoder.EncodeCSV(configPath)
 	},
