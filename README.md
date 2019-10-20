@@ -20,8 +20,13 @@ Tadataka has sub commands.
 #### Single file mode
 
 ```sh
-$ tadataka olc ./input/file/path.csv ./output/file/path.csv
+$ tadataka olc ./input/file/path.csv ./output/file/path.csv --lat 1 --lng 2 --header false
 ```
+
+- `lat`: (number) Column number of latitude in CSV file. (begin from `0`)
+- `lng`: (number) Column number of longitude in CSV file. (begin from `0`)
+    - In CSV file like `id000,30.123456,145.456789,10,true`, `lat_column` is `1` and `lng_column` is `2`.
+- `header`: (boolean) Whether CSV files have a header row or not. (default: `true`)
 
 #### Multiple file mode
 
@@ -37,7 +42,7 @@ To subdivide multiple files, you have designate a config file with `--config` fl
 $ tadataka prep
 ```
 
-## Config file
+## Tadataka Config File
 
 In some sub commands (like `olc` multiple file mode, `gc`, `rgc`), Tadataka requires a config file like below.
 
