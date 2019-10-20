@@ -1,0 +1,7 @@
+{
+    "input_dir":"~/input/directory/path",
+    "output_dir":"~/output/directory/path",
+    "lat_column":2,
+    "lng_column":3,
+    "header_row":true
+}
