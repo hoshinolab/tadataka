@@ -2,46 +2,18 @@ package encoder
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
 	"strings"
 	"unsafe"
 
+	"tadataka/util"
+
 	"github.com/fatih/color"
-	"github.com/google/open-location-code/go"
+	olc "github.com/google/open-location-code/go"
 )
-
-type settings struct {
-	InputDir  string `json:"input_dir"`
-	OutputDir string `json:"output_dir"`
-	LatColumn int    `json:"lat_column"`
-	LngColumn int    `json:"lng_column"`
-	Header    bool   `json:"header"`
-}
-
-//TODO implement JSON Reader
-
-func jsonReader(jsonPath string) *settings {
-	bytes, err := ioutil.ReadFile(jsonPath)
-
-	if err != nil {
-		color.Red("TADATAKA JSON Reading Error:")
-		panic(err)
-	}
-
-	jsonBytes := ([]byte)(bytes)
-	settingData := new(settings)
-
-	if err := json.Unmarshal(jsonBytes, settingData); err != nil {
-		color.Red("TADATAKA JSON Unmarshall Error:")
-		panic(err)
-	}
-	return settingData
-}
 
 func EncodeGridLevel(lat, lng float64) string {
 	olcGridName := olc.Encode(lat, lng, 6)[:6]
@@ -50,7 +22,7 @@ func EncodeGridLevel(lat, lng float64) string {
 
 func EncodeCSV(path string) {
 	color.Blue("OLC READER")
-	st := jsonReader(path)
+	st := util.JsonReader(path)
 	fmt.Println(st.OutputDir)
 }
 
