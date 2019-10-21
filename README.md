@@ -1,4 +1,5 @@
 # Tadataka
+![logo](./docs/tadataka-logo.svg)
 Tadataka is the geospatial big data preprocessing tool. This tool is named after [Inō Tadataka](https://en.wikipedia.org/wiki/In%C5%8D_Tadataka), or Japanese greatest surveyor.
 
 ## Installation
