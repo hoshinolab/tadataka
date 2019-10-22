@@ -9,13 +9,16 @@ import (
 )
 
 func init() {
-	olcCmd.PersistentFlags().String("config", "./config.json", "set config file path (JSON)")
+	olcCmd.PersistentFlags().String("config", "", "set config file path (JSON)")
+	olcCmd.PersistentFlags().Int("lat", 1, "Column number of latitude in CSV file. (begin from 0)")
+	olcCmd.PersistentFlags().Int("lng", 2, "Column number of longitude in CSV file. (begin from 0)")
+	olcCmd.PersistentFlags().Bool("header", true, "Whether CSV files have a header row or not. (default: true)")
 	rootCmd.AddCommand(olcCmd)
 }
 
 var olcCmd = &cobra.Command{
 	Use:   "olc",
-	Short: "Devide geospatial CSV file with Open Location Code (OLC)",
+	Short: "Subdivide geospatial CSV file with Open Location Code (OLC)",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		color.Blue("TADATAKA OLC Encoder")
@@ -25,17 +28,41 @@ var olcCmd = &cobra.Command{
 			return
 		}
 
-		//bytes, err := ioutil.ReadFile(config)
-		//TODO read JSON
-		if err != nil {
-			fmt.Println("[TADATAKA] JSON Reading Error:", err)
-			return
+		if configPath == "" {
+			//TODO
+			fmt.Println("Single File Mode")
+			if len(args) != 2 {
+				color.Red("[TADATAKA] Error! You must designate both input and output file path.")
+				panic("terminated...")
+			}
+			inputFilePath := args[0]
+			outputDirPath := args[1]
+
+			latCol, err := cmd.PersistentFlags().GetInt("lat")
+			if err != nil {
+				fmt.Println("[TADATAKA] Flag Parse Error:", err)
+				return
+			}
+
+			lngCol, err := cmd.PersistentFlags().GetInt("lng")
+			if err != nil {
+				fmt.Println("[TADATAKA] Flag Parse Error:", err)
+				return
+			}
+
+			header, err := cmd.PersistentFlags().GetBool("header")
+			if err != nil {
+				fmt.Println("[TADATAKA] Flag Parse Error:", err)
+				return
+			}
+
+			encoder.EncodeSingleCSV(inputFilePath, outputDirPath, latCol, lngCol, header)
+
+		} else {
+			//TODO implement single file mode and multiple file mode (directory mode)
+			fmt.Println("Multiple File Mode")
+			encoder.EncodeCSV(configPath)
 		}
 
-		//TODO implement single file mode and multiple file mode (directory mode)
-
-		teststr := encoder.EncodeGridLevel(35.7720007, 139.7472105)
-		fmt.Println(teststr)
-		encoder.EncodeCSV(configPath)
 	},
 }
