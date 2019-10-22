@@ -13,3 +13,4 @@
 
 
 config_example.json
+*.csv
