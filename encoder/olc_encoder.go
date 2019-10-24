@@ -39,13 +39,22 @@ func EncodeSingleCSV(inputFilePath, outputDirPath string, latCol, lngCol int, he
 		fmt.Println(err)
 	}
 
+	buf := make(map[string]string, 100000)
+
 	scanner := bufio.NewScanner(inputFile)
 	for scanner.Scan() {
 		line := scanner.Text()
 		p := util.CSVRowParser(line, 2, 3)
-		grid := EncodeGridLevel(p.Lat, p.Lng, 6)
-		gridCSVpath := filepath.Join(outputFullPath, grid+".csv")
-		util.CSVRowWriter(line, gridCSVpath)
+		grid := EncodeGridLevel(p.Lat, p.Lng, 6) //6桁で取ってるが、full gridが要るので6桁に絞らない　ファイル名用のgridはあとで[:6]で取る
+		//gridCSVpath := filepath.Join(outputFullPath, grid+".csv")
+		buf[grid] = buf[grid] + line + "\r\n"
+		//util.CSVRowWriter(line, gridCSVpath)
+		//TODO: 10桁？のfull Gridをrow末尾に付与する
+	}
+	for keyGrid, csvData := range buf {
+		fmt.Println(keyGrid)
+		fmt.Println(csvData)
+		fmt.Println("==============")
 	}
 
 }
