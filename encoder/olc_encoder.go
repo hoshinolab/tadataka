@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"tadataka/util"
 
@@ -14,7 +15,7 @@ import (
 )
 
 func EncodeGridLevel(lat, lng float64, level int) string {
-	olcGridName := olc.Encode(lat, lng, 6)[:6]
+	olcGridName := olc.Encode(lat, lng, level)[:level]
 	return olcGridName
 }
 
@@ -39,17 +40,30 @@ func EncodeSingleCSV(inputFilePath, outputDirPath string, latCol, lngCol int, he
 		fmt.Println(err)
 	}
 
-	buf := make(map[string]string, 100000)
+	buf := make(map[string]string, 150000)
+	bufCount := 0
 
 	scanner := bufio.NewScanner(inputFile)
 	for scanner.Scan() {
 		line := scanner.Text()
-		p := util.CSVRowParser(line, 2, 3)
-		grid := EncodeGridLevel(p.Lat, p.Lng, 6) //6桁で取ってるが、full gridが要るので6桁に絞らない　ファイル名用のgridはあとで[:6]で取る
+		p := util.CSVRowParser(line, 2, 3)            //8Q7XJPXR+MM
+		fullGrid := EncodeGridLevel(p.Lat, p.Lng, 11) //6桁で取ってるが、full gridが要るので6桁に絞らない　ファイル名用のgridはあとで[:6]で取る
+		shortGrid := fullGrid[:6]
 		//gridCSVpath := filepath.Join(outputFullPath, grid+".csv")
-		buf[grid] = buf[grid] + line + "\r\n"
+		var outputStr = make([]byte, 0, 30)
+		outputStr = append(outputStr, line...)
+		outputStr = append(outputStr, ","...)
+		outputStr = append(outputStr, fullGrid...)
+		outputStr = append(outputStr, "\n"...)
+		outputLine := string(outputStr)
+
+		bufArray := []string{buf[shortGrid], outputLine, "\r\n"}
+		buf[shortGrid] = strings.Join(bufArray, "")
+		bufCount++
+		if bufCount > 1000 {
+			fmt.Println("FLUSH") //TODO FLUSH with goroutine
+		}
 		//util.CSVRowWriter(line, gridCSVpath)
-		//TODO: 10桁？のfull Gridをrow末尾に付与する
 	}
 	for keyGrid, csvData := range buf {
 		fmt.Println(keyGrid)
