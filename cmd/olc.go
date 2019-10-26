@@ -63,7 +63,7 @@ var olcCmd = &cobra.Command{
 				return
 			}
 
-			encoder.EncodeSingleCSV(inputFilePath, outputDirPath, latCol, lngCol, bufferSize, header)
+			encoder.EncodeSingleCSV(inputFilePath, outputDirPath, latCol, lngCol, header)
 
 		} else {
 			//TODO implement single file mode and multiple file mode (directory mode)
