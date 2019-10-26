@@ -1,6 +1,7 @@
 package util
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"strconv"
@@ -31,4 +32,16 @@ func CSVRowWriter(csvRow, outputCSVPath string) {
 	}
 	defer file.Close()
 	fmt.Fprintln(file, csvRow)
+}
+
+func CSVBufWriter(csvBuf, outputCSVPath string) {
+	file, err := os.OpenFile(outputCSVPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
+	writer := bufio.NewWriter(file)
+	w := bufio.NewWriter(writer)
+	w.WriteString(csvBuf)
+	w.Flush()
+	defer file.Close()
 }
