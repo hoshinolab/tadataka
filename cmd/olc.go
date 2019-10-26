@@ -12,6 +12,7 @@ func init() {
 	olcCmd.PersistentFlags().String("config", "", "set config file path (JSON)")
 	olcCmd.PersistentFlags().Int("lat", 1, "Column number of latitude in CSV file. (begin from 0)")
 	olcCmd.PersistentFlags().Int("lng", 2, "Column number of longitude in CSV file. (begin from 0)")
+	olcCmd.PersistentFlags().Int("buffer", 100000, "Buffering size (the number of rows)")
 	olcCmd.PersistentFlags().Bool("header", true, "Whether CSV files have a header row or not. (default: true)")
 	rootCmd.AddCommand(olcCmd)
 }
@@ -50,13 +51,19 @@ var olcCmd = &cobra.Command{
 				return
 			}
 
+			bufferSize, err := cmd.PersistentFlags().GetInt("buffer")
+			if err != nil {
+				fmt.Println("[TADATAKA] Flag Parse Error:", err)
+				return
+			}
+
 			header, err := cmd.PersistentFlags().GetBool("header")
 			if err != nil {
 				fmt.Println("[TADATAKA] Flag Parse Error:", err)
 				return
 			}
 
-			encoder.EncodeSingleCSV(inputFilePath, outputDirPath, latCol, lngCol, header)
+			encoder.EncodeSingleCSV(inputFilePath, outputDirPath, latCol, lngCol, bufferSize, header)
 
 		} else {
 			//TODO implement single file mode and multiple file mode (directory mode)

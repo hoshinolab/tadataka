@@ -62,10 +62,9 @@ func EncodeSingleCSV(inputFilePath, outputDirPath string, latCol, lngCol int, he
 		buf[shortGrid] = strings.Join(bufArray, "")
 		bufCount++
 
-		limit := make(chan struct{}, 100) //goroutine limit
+		limit := make(chan struct{}, 150) //goroutine limit
 		var wg sync.WaitGroup
 		if bufCount > 200000 {
-			fmt.Println("FLUSH") //TODO FLUSH with goroutine
 			for keyGrid, bufValue := range buf {
 				wg.Add(1)
 				go func(goroutineKeyGrid, goroutineBufValue string) {
@@ -79,7 +78,6 @@ func EncodeSingleCSV(inputFilePath, outputDirPath string, latCol, lngCol int, he
 			wg.Wait()
 			bufCount = 0
 			buf = make(map[string]string, 150000)
-			fmt.Println("FLUSH DONE")
 		}
 
 	}
