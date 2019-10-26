@@ -12,7 +12,6 @@ func init() {
 	olcCmd.PersistentFlags().String("config", "", "set config file path (JSON)")
 	olcCmd.PersistentFlags().Int("lat", 1, "Column number of latitude in CSV file. (begin from 0)")
 	olcCmd.PersistentFlags().Int("lng", 2, "Column number of longitude in CSV file. (begin from 0)")
-	olcCmd.PersistentFlags().Int("buffer", 100000, "Buffering size (the number of rows)")
 	olcCmd.PersistentFlags().Bool("header", true, "Whether CSV files have a header row or not. (default: true)")
 	rootCmd.AddCommand(olcCmd)
 }
@@ -46,12 +45,6 @@ var olcCmd = &cobra.Command{
 			}
 
 			lngCol, err := cmd.PersistentFlags().GetInt("lng")
-			if err != nil {
-				fmt.Println("[TADATAKA] Flag Parse Error:", err)
-				return
-			}
-
-			bufferSize, err := cmd.PersistentFlags().GetInt("buffer")
 			if err != nil {
 				fmt.Println("[TADATAKA] Flag Parse Error:", err)
 				return
