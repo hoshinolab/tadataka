@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 
 	"tadataka/util"
 
@@ -49,7 +50,7 @@ func EncodeSingleCSV(inputFilePath, outputDirPath string, latCol, lngCol int, he
 		p := util.CSVRowParser(line, 2, 3)            //8Q7XJPXR+MM
 		fullGrid := EncodeGridLevel(p.Lat, p.Lng, 11) //6桁で取ってるが、full gridが要るので6桁に絞らない　ファイル名用のgridはあとで[:6]で取る
 		shortGrid := fullGrid[:6]
-		//gridCSVpath := filepath.Join(outputFullPath, grid+".csv")
+
 		var outputStr = make([]byte, 0, 30)
 		outputStr = append(outputStr, line...)
 		outputStr = append(outputStr, ","...)
@@ -57,18 +58,31 @@ func EncodeSingleCSV(inputFilePath, outputDirPath string, latCol, lngCol int, he
 		outputStr = append(outputStr, "\n"...)
 		outputLine := string(outputStr)
 
-		bufArray := []string{buf[shortGrid], outputLine, "\r\n"}
+		bufArray := []string{buf[shortGrid], outputLine}
 		buf[shortGrid] = strings.Join(bufArray, "")
 		bufCount++
-		if bufCount > 1000 {
+
+		limit := make(chan struct{}, 100) //goroutine limit
+		var wg sync.WaitGroup
+		if bufCount > 200000 {
 			fmt.Println("FLUSH") //TODO FLUSH with goroutine
+			for keyGrid, bufValue := range buf {
+				wg.Add(1)
+				go func(goroutineKeyGrid, goroutineBufValue string) {
+					limit <- struct{}{}
+					defer wg.Done()
+					gridCSVpath := filepath.Join(outputFullPath, goroutineKeyGrid+".csv")
+					util.CSVBufWriter(goroutineBufValue, gridCSVpath)
+					<-limit
+				}(keyGrid, bufValue)
+			}
+			wg.Wait()
+			bufCount = 0
+			buf = make(map[string]string, 150000)
+			fmt.Println("FLUSH DONE")
 		}
-		//util.CSVRowWriter(line, gridCSVpath)
+
 	}
-	for keyGrid, csvData := range buf {
-		fmt.Println(keyGrid)
-		fmt.Println(csvData)
-		fmt.Println("==============")
-	}
+	fmt.Println("Err", scanner.Err())
 
 }
