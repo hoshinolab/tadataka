@@ -16,6 +16,6 @@ var prepCmd = &cobra.Command{
 	Short: "Prepare for geocoding/reverse geocofing to download address data",
 	Run: func(cmd *cobra.Command, args []string) {
 		color.Blue("TADATAKA Preparing Tool")
-		prep.DownloadJukyoJusho()
+		prep.DownloadWizard()
 	},
 }
