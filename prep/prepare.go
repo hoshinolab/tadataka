@@ -17,12 +17,18 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/text/encoding/japanese"
+	"golang.org/x/text/transform"
+
 	//blank import for statik
 	_ "tadataka/statik"
 	"tadataka/util"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/rakyll/statik/fs"
 )
+
+var jukyoJushoDir string
 
 func DownloadWizard() {
 	statikFs, err := fs.New()
@@ -51,101 +57,98 @@ func downloadJukyoJusho() {
 	u, _ := user.Current()
 	homeDir := u.HomeDir
 	tadatakaDir := homeDir + "/.tadataka"
+	jukyoJushoDir = tadatakaDir + "/jukyoJusho"
 
 	if f, err := os.Stat(tadatakaDir); os.IsNotExist(err) || !f.IsDir() {
 		if err := os.MkdirAll(tadatakaDir, 0777); err != nil {
 			panic(err)
 		}
 	}
+	if f, err := os.Stat(jukyoJushoDir); os.IsNotExist(err) || !f.IsDir() {
+		if err := os.MkdirAll(jukyoJushoDir, 0777); err != nil {
+			panic(err)
+		}
+	}
 
 	//TODO DOWNLOAD
-	fmt.Println("Output destination directory: " + tadatakaDir)
-	outdir = *out
+	fmt.Println("Output destination directory: " + jukyoJushoDir)
 
-	if *noDownload {
-		fmt.Println("NO DOWNLOAD MODE")
-	} else {
-		gsiDownloadURL := "https://saigai.gsi.go.jp/jusho/download/"
+	gsiDownloadURL := "https://saigai.gsi.go.jp/jusho/download/"
 
-		doc, err := goquery.NewDocument(gsiDownloadURL)
-		if err != nil {
-			fmt.Print("Connection Error")
-		}
-
-		doc.Find("a").Each(func(_ int, s *goquery.Selection) {
-			url, _ := s.Attr("href")
-			text := s.Text()
-			if strings.Contains(url, "pref/") {
-				getPref(gsiDownloadURL+"/"+url, text)
-				time.Sleep(2000 * time.Millisecond)
-			}
-		})
+	doc, err := goquery.NewDocument(gsiDownloadURL)
+	if err != nil {
+		fmt.Print("Connection Error")
 	}
 
-	if *noUnzip {
-		fmt.Println("NO UNZIP MODE")
-	} else {
-		// unzip
-		files, _ := ioutil.ReadDir(outdir)
-		for _, file := range files {
-			if strings.Contains(file.Name(), ".zip") {
-				zp := path.Join(outdir, file.Name())
-				extractCSV(zp)
-			}
+	doc.Find("a").Each(func(_ int, s *goquery.Selection) {
+		url, _ := s.Attr("href")
+		text := s.Text()
+		if strings.Contains(url, "pref/") {
+			getPref(gsiDownloadURL+"/"+url, text)
+			time.Sleep(2000 * time.Millisecond)
 		}
-		//create concat CSV
-		ut := time.Now().Unix()
-		uts := strconv.FormatInt(ut, 10)
-		ccf := uts + "_jukyo-jusho-concat.csv"
-		ccp := path.Join(outdir, ccf)
-		concatCSV, err := os.OpenFile(ccp, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-		if err != nil {
-			log.Fatal(err)
-			return
-		}
-		defer concatCSV.Close()
+	})
 
-		// list up concat unzipped csv
-		files, _ = ioutil.ReadDir(outdir)
-		for _, file := range files {
-			if strings.Contains(file.Name(), ".csv") && !strings.Contains(file.Name(), "concat") {
-				srcbyte := []byte(file.Name())
-				rx := regexp.MustCompile(".+_(.+)_(.+).csv")
-				match := rx.FindSubmatch(srcbyte)
-				prefName := string(match[1])
-				cityName := string(match[2])
-
-				//add csv data to concat CSV
-				cp := path.Join(outdir, file.Name())
-				cf, err := os.Open(cp)
-				fmt.Println("open: " + cp)
-				if err != nil {
-					log.Fatal(err)
-					return
-				}
-
-				s := bufio.NewScanner(transform.NewReader(cf, japanese.ShiftJIS.NewDecoder()))
-				for s.Scan() {
-					sl := strings.SplitN(s.Text(), ",", 2)
-					writestr := sl[0] + "," + prefName + "," + cityName + "," + sl[1]
-					fmt.Fprintln(concatCSV, writestr)
-				}
-				fmt.Println("close: " + cp)
-			}
+	// unzip
+	files, _ := ioutil.ReadDir(jukyoJushoDir)
+	for _, file := range files {
+		if strings.Contains(file.Name(), ".zip") {
+			zp := path.Join(jukyoJushoDir, file.Name())
+			extractCSV(zp)
 		}
 	}
-	if *delTmpFiles {
-		fmt.Println("DELETE TMP FILES")
-		files, _ := ioutil.ReadDir(outdir)
-		for _, file := range files {
-			if strings.Contains(file.Name(), ".csv") && !strings.Contains(file.Name(), "concat") || strings.Contains(file.Name(), ".zip") {
-				rp := path.Join(outdir, file.Name())
-				if err := os.RemoveAll(rp); err != nil {
-					fmt.Println(err)
-				}
+	//create concat CSV
+	ut := time.Now().Unix()
+	uts := strconv.FormatInt(ut, 10)
+	ccf := uts + "_jukyo-jusho-concat.csv"
+	ccp := path.Join(jukyoJushoDir, ccf)
+	concatCSV, err := os.OpenFile(ccp, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	defer concatCSV.Close()
+
+	// list up concat unzipped csv
+	files, _ = ioutil.ReadDir(jukyoJushoDir)
+	for _, file := range files {
+		if strings.Contains(file.Name(), ".csv") && !strings.Contains(file.Name(), "concat") {
+			srcbyte := []byte(file.Name())
+			rx := regexp.MustCompile(".+_(.+)_(.+).csv")
+			match := rx.FindSubmatch(srcbyte)
+			prefName := string(match[1])
+			cityName := string(match[2])
+
+			//add csv data to concat CSV
+			cp := path.Join(jukyoJushoDir, file.Name())
+			cf, err := os.Open(cp)
+			fmt.Println("open: " + cp)
+			if err != nil {
+				log.Fatal(err)
+				return
+			}
+
+			s := bufio.NewScanner(transform.NewReader(cf, japanese.ShiftJIS.NewDecoder()))
+			for s.Scan() {
+				sl := strings.SplitN(s.Text(), ",", 2)
+				writestr := sl[0] + "," + prefName + "," + cityName + "," + sl[1]
+				fmt.Fprintln(concatCSV, writestr)
+			}
+			fmt.Println("close: " + cp)
+		}
+	}
+
+	fmt.Println("DELETE TMP FILES")
+	delFiles, _ := ioutil.ReadDir(jukyoJushoDir)
+	for _, file := range delFiles {
+		if strings.Contains(file.Name(), ".csv") && !strings.Contains(file.Name(), "concat") || strings.Contains(file.Name(), ".zip") {
+			rp := path.Join(jukyoJushoDir, file.Name())
+			if err := os.RemoveAll(rp); err != nil {
+				fmt.Println(err)
 			}
 		}
 	}
+
 }
 
 // get list of zip files from prefecture page
@@ -178,7 +181,7 @@ func getZIPFileURL(filename string) string {
 	return "https://saigai.gsi.go.jp/jusho/download/data/" + filename
 }
 
-func downloadAndWait(saveFileName string, url string) error {
+func downloadAndWait(saveFileName, url string) error {
 	res, err := http.Get(url)
 
 	//error
@@ -188,7 +191,7 @@ func downloadAndWait(saveFileName string, url string) error {
 	defer res.Body.Close()
 
 	// create file for the download target
-	out, err := os.Create(outdir + "/" + saveFileName)
+	out, err := os.Create(filepath.Join(jukyoJushoDir, saveFileName))
 	if err != nil {
 		return err
 	}
@@ -231,7 +234,7 @@ func extractCSV(src string) error {
 			}
 
 			savefn := strings.Replace(fn, ".csv", "_"+prefName+"_"+cityName+".csv", -1)
-			path := filepath.Join(outdir, savefn)
+			path := filepath.Join(jukyoJushoDir, savefn)
 			err = ioutil.WriteFile(path, buf, f.Mode())
 			if err != nil {
 				return err
