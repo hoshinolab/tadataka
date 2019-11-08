@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +14,8 @@ var rootCmd = &cobra.Command{
 	Long: `Tadataka is a CLI tool designated to preprocess geo big data.
 				  developed by ryo-a`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("TADATAKA")
+		color.Blue("TADATAKA: Geospatial Big Data Preprocessing Tool")
+		fmt.Println("Please designate subcommand to run TADATAKA")
 	},
 }
 
