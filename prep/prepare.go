@@ -13,7 +13,6 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -98,9 +97,7 @@ func downloadJukyoJusho() {
 		}
 	}
 	//create concat CSV
-	ut := time.Now().Unix()
-	uts := strconv.FormatInt(ut, 10)
-	ccf := uts + "_jukyo-jusho-concat.csv"
+	ccf := "jukyo-jusho-concat.csv"
 	ccp := path.Join(jukyoJushoDir, ccf)
 	concatCSV, err := os.OpenFile(ccp, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
