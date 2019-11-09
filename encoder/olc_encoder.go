@@ -27,7 +27,7 @@ func EncodeCSV(path string) {
 }
 
 //グリッド別のディレクトリを作る設計に変える
-func EncodeSingleCSV(inputFilePath, outputDirPath string, latCol, lngCol int, header bool) {
+func SubdivideCSV(inputFilePath, outputDirPath string, latCol, lngCol int, header bool) {
 	inputFile, inputErr := os.Open(inputFilePath)
 	if inputErr != nil {
 		panic(inputErr)
@@ -82,5 +82,23 @@ func EncodeSingleCSV(inputFilePath, outputDirPath string, latCol, lngCol int, he
 
 	}
 	fmt.Println("Err", scanner.Err())
+}
 
+//Encoder
+func GridAddToCSV(inputFilePath, outputDirPath string, latCol, lngCol int, header bool) {
+	inputFile, inputErr := os.Open(inputFilePath)
+	if inputErr != nil {
+		panic(inputErr)
+	}
+	defer inputFile.Close()
+
+	r := regexp.MustCompile(`.csv$`)
+	fn := filepath.Base(r.ReplaceAllString(inputFilePath, "")) //file name without extension (.csv)
+	outputFullPath := filepath.Join(outputDirPath, fn)
+	if err := os.MkdirAll(outputFullPath, 0777); err != nil {
+		fmt.Println(err)
+	}
+
+	buf := make(map[string]string, 150000)
+	bufCount := 0
 }
