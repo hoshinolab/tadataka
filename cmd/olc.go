@@ -16,6 +16,8 @@ func init() {
 	rootCmd.AddCommand(olcCmd)
 }
 
+// TODO: Replace to "subdiv"
+
 var olcCmd = &cobra.Command{
 	Use:   "olc",
 	Short: "Subdivide geospatial CSV file with Open Location Code (OLC)",
