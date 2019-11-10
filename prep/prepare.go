@@ -20,6 +20,7 @@ import (
 	"golang.org/x/text/transform"
 
 	//blank import for statik
+	"tadataka/encoder"
 	_ "tadataka/statik"
 	"tadataka/util"
 
@@ -30,6 +31,12 @@ import (
 var jukyoJushoDir string
 
 func DownloadWizard() {
+	u, _ := user.Current()
+	homeDir := u.HomeDir
+	tadatakaDir := filepath.Join(homeDir, ".tadataka")
+	jukyoJushoDir := filepath.Join(tadatakaDir, "jukyoJusho")
+	jukyoJushoCSVPath := filepath.Join(jukyoJushoDir, "jukyo-jusho-concat.csv")
+
 	statikFs, err := fs.New()
 	if err != nil {
 		panic(err)
@@ -47,6 +54,8 @@ func DownloadWizard() {
 	if util.CLIQuestion() {
 		fmt.Println("Download")
 		downloadJukyoJusho()
+		//TODO add grid to jukyojusho CSV
+		encoder.AddGridToCSV(jukyoJushoCSVPath, jukyoJushoDir, 9, 8, false)
 	} else {
 		fmt.Println("Abort.")
 	}

@@ -47,7 +47,7 @@ func SubdivideCSV(inputFilePath, outputDirPath string, latCol, lngCol int, heade
 	scanner := bufio.NewScanner(inputFile)
 	for scanner.Scan() {
 		line := scanner.Text()
-		p := util.CSVRowParser(line, 2, 3)            //8Q7XJPXR+MM
+		p := util.CSVRowParser(line, latCol, lngCol)  //8Q7XJPXR+MM
 		fullGrid := EncodeGridLevel(p.Lat, p.Lng, 11) //6桁で取ってるが、full gridが要るので6桁に絞らない　ファイル名用のgridはあとで[:6]で取る
 		shortGrid := fullGrid[:6]
 
@@ -85,7 +85,13 @@ func SubdivideCSV(inputFilePath, outputDirPath string, latCol, lngCol int, heade
 }
 
 //Encoder
-func GridAddToCSV(inputFilePath, outputDirPath string, latCol, lngCol int, header bool) {
+func AddGridToCSV(inputFilePath, outputDirPath string, latCol, lngCol int, header bool) {
+	ifn := filepath.Base(inputFilePath)
+	s := strings.Split(ifn, ".")
+	ifnNoExt := s[0]
+
+	inputFileName := ifnNoExt + "-grid.csv" //TODO 拡張子除く
+	outputFilePath := filepath.Join(outputDirPath, inputFileName)
 	inputFile, inputErr := os.Open(inputFilePath)
 	if inputErr != nil {
 		panic(inputErr)
@@ -99,6 +105,27 @@ func GridAddToCSV(inputFilePath, outputDirPath string, latCol, lngCol int, heade
 		fmt.Println(err)
 	}
 
-	buf := make(map[string]string, 150000)
+	var outputBuf = make([]byte, 0, 1280000)
 	bufCount := 0
+
+	scanner := bufio.NewScanner(inputFile)
+	for scanner.Scan() {
+		line := scanner.Text()
+		p := util.CSVRowParser(line, latCol, lngCol)
+		fullGrid := EncodeGridLevel(p.Lat, p.Lng, 11)
+		//shortGrid := fullGrid[:6]
+
+		outputBuf = append(outputBuf, line...)
+		outputBuf = append(outputBuf, ","...)
+		outputBuf = append(outputBuf, fullGrid...)
+		outputBuf = append(outputBuf, "\n"...)
+		bufCount++
+
+		if bufCount > 1000000 {
+			outputBufStr := string(outputBuf)
+			util.CSVBufWriter(outputBufStr, outputFilePath)
+			outputBuf = make([]byte, 0, 1280000)
+			bufCount = 0
+		}
+	}
 }

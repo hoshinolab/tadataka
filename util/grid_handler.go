@@ -69,8 +69,8 @@ func GetNeighborGrid(grid string) (g Grids) {
 	}
 
 	//x axis and y axis
-	x := "2"
-	y := "2"
+	//x := "2"
+	//y := "2"
 
 	//TODO Detection Level
 	//TODO 端部だったら上位グリッドも取得
