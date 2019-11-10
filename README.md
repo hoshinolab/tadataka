@@ -10,17 +10,52 @@ Tadataka is the geospatial big data preprocessing tool. This tool is named after
 
 ## Usage
 
+### Basic setup
+
+```
+$ tadataka prep
+$ tadataka stdby
+```
+
+## Subcommands
+
 Tadataka has sub commands.
 
 - `prep`: create `~/.tadataka` direcotry and download address-coordinate data from Geospatial Information Authority of Japan (国土地理院, GSI) for geocoding/reverse geocoding.
-- `olc`: subdivide large CSV file(s) into small CSV files with [Open Location Code (plus codes)](https://en.wikipedia.org/wiki/Open_Location_Code).
-- `gc`: geocoder
+- `stdby`: import address-coordinate data from `~/.tadataka` to Redis. This subcommand is required to execute `gc` and `rgc`
+- `subdiv`: subdivide large CSV file(s) into small CSV files with [Open Location Code (plus codes)](https://en.wikipedia.org/wiki/Open_Location_Code).
+    - former: `olc`
+- `gc`: geocoder (not implemented yet)
 - `rgc`: reverse geocoder
 - `version`: show version of Tadataka
 
-### `olc`
+### `prep`
 
-#### Single file mode
+**requirement** : nothing (enough disk space)
+
+stdby subcommand download address-coordinate data from Geospatial Information Authority of Japan (国土地理院, GSI) for geocoding/reverse geocoding into `~/.tadataka`
+
+```
+$ tadataka prep
+```
+
+### `stdby`
+
+**requirement** : downloaded address-coordinate data by `prep` command, Redis
+
+stdby subcommand imports address-coordinate data from `~/.tadataka` to Redis. You should run this subcommand before using `gc` and `rgc`
+
+```
+$ tadataka stdby
+```
+
+
+### `subdivide`
+
+**requirement** : nothing (only target CSV files and enough disk space)
+
+former: `olc` command.
+
 
 ```sh
 $ tadataka olc ./input/file/path.csv ./output/directory/path --lat 1 --lng 2 --header false
@@ -31,19 +66,7 @@ $ tadataka olc ./input/file/path.csv ./output/directory/path --lat 1 --lng 2 --h
     - In CSV file like `id000,30.123456,145.456789,10,true`, `lat` is `1` and `lng` is `2`.
 - `header`: (boolean) Whether CSV files have a header row or not. (default: `true`)
 
-#### Multiple file mode
 
-```sh
-$ tadataka olc --config ./config/file/path.json
-```
-
-To subdivide multiple files, you have designate a config file with `--config` flag.
-
-### `prep`
-
-```
-$ tadataka prep
-```
 
 ## Tadataka Config File
 
