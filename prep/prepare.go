@@ -250,3 +250,28 @@ func extractCSV(src string) error {
 	}
 	return nil
 }
+
+func downloadIsj(url string) {
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("Referer", "http://nlftp.mlit.go.jp/cgi-bin/isj/dls/_download_files.cgi")
+
+	client := new(http.Client)
+	resp, _ := client.Do(req)
+
+	byteArray, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(byteArray))
+
+	_, filename := path.Split(url)
+
+	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0666)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	defer func() {
+		file.Close()
+	}()
+
+	file.Write(byteArray)
+}
