@@ -13,6 +13,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -28,14 +29,18 @@ import (
 	"github.com/rakyll/statik/fs"
 )
 
-var jukyoJushoDir string
+var isjDir, jukyoJushoDir string
 
 func DownloadWizard() {
 	u, _ := user.Current()
 	homeDir := u.HomeDir
 	tadatakaDir := filepath.Join(homeDir, ".tadataka")
-	jukyoJushoDir := filepath.Join(tadatakaDir, "jukyoJusho")
-	jukyoJushoCSVPath := filepath.Join(jukyoJushoDir, "jukyo-jusho-concat.csv")
+	isjDir = filepath.Join(tadatakaDir, "isj")
+	//isjCSVPath := filepath.Join(isjDir, "isj-concat.csv")
+	jukyoJushoDir = filepath.Join(tadatakaDir, "jukyoJusho")
+	//jukyoJushoCSVPath := filepath.Join(jukyoJushoDir, "jukyo-jusho-concat.csv")
+
+	//TODO dir validation here
 
 	statikFs, err := fs.New()
 	if err != nil {
@@ -75,8 +80,6 @@ func DownloadWizard() {
 	if util.CLIQuestion() {
 		fmt.Println("Download")
 		downloadJukyoJusho()
-		//TODO add grid to jukyojusho CSV
-		encoder.AddGridToCSV(jukyoJushoCSVPath, jukyoJushoDir, 9, 8, false)
 	} else {
 		fmt.Println("Abort.")
 	}
@@ -86,7 +89,6 @@ func downloadJukyoJusho() {
 	u, _ := user.Current()
 	homeDir := u.HomeDir
 	tadatakaDir := homeDir + "/.tadataka"
-	jukyoJushoDir = tadatakaDir + "/jukyoJusho"
 
 	if f, err := os.Stat(tadatakaDir); os.IsNotExist(err) || !f.IsDir() {
 		if err := os.MkdirAll(tadatakaDir, 0777); err != nil {
@@ -157,9 +159,28 @@ func downloadJukyoJusho() {
 
 			s := bufio.NewScanner(transform.NewReader(cf, japanese.ShiftJIS.NewDecoder()))
 			for s.Scan() {
-				sl := strings.SplitN(s.Text(), ",", 2)
-				writestr := sl[0] + "," + prefName + "," + cityName + "," + sl[1]
-				fmt.Fprintln(concatCSV, writestr)
+				sl := strings.Split(s.Text(), ",")
+				lat, _ := strconv.ParseFloat(strings.Replace(sl[7], "\"", "", -1), 64)
+				lng, _ := strconv.ParseFloat(strings.Replace(sl[6], "\"", "", -1), 64)
+				grid := encoder.EncodeGridLevel(lat, lng, 11)
+				var outputStr = make([]byte, 0, 350)
+				outputStr = append(outputStr, prefName...)
+				outputStr = append(outputStr, ","...)
+				outputStr = append(outputStr, cityName...)
+				outputStr = append(outputStr, ","...)
+				outputStr = append(outputStr, sl[1]...)
+				outputStr = append(outputStr, ","...)
+				outputStr = append(outputStr, sl[2]...)
+				outputStr = append(outputStr, ","...)
+				outputStr = append(outputStr, sl[3]...)
+				outputStr = append(outputStr, ","...)
+				outputStr = append(outputStr, sl[7]...)
+				outputStr = append(outputStr, ","...)
+				outputStr = append(outputStr, sl[6]...)
+				outputStr = append(outputStr, ","...)
+				outputStr = append(outputStr, grid...)
+				outputLine := string(outputStr)
+				fmt.Fprintln(concatCSV, outputLine)
 			}
 			fmt.Println("close: " + cp)
 		}
@@ -272,12 +293,41 @@ func extractCSV(src string) error {
 	return nil
 }
 
+// ISJ(国土交通省 位置参照情報) Downloader main function
 func downloadIsj() {
+
+	if f, err := os.Stat(isjDir); os.IsNotExist(err) || !f.IsDir() {
+		if err := os.MkdirAll(isjDir, 0777); err != nil {
+			panic(err)
+		}
+	}
+
+	//TODO cleanup isjDir
+
+	//create concat CSV
+	ccf := "isj-concat.csv"
+	ccp := path.Join(isjDir, ccf)
+	concatCSV, err := os.OpenFile(ccp, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	defer concatCSV.Close()
+
+	for i := 1; i <= 47; i++ {
+		iStr := fmt.Sprintf("%02d", i)
+		downloadISJZip(iStr)
+		extractISJCSV(iStr)
+		concatISJCSV(iStr)
+		time.Sleep(2000 * time.Millisecond)
+	}
+
+	deleteISJtmpFiles()
 
 }
 
-func downloadIsjZip(url string) {
-	url := "http://nlftp.mlit.go.jp/isj/dls/data/17.0a/" + "05000-17.0a.zip"
+func downloadISJZip(idStr string) {
+	url := "http://nlftp.mlit.go.jp/isj/dls/data/17.0a/" + idStr + "000-17.0a.zip"
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("Referer", "http://nlftp.mlit.go.jp/cgi-bin/isj/dls/_download_files.cgi")
 
@@ -287,7 +337,8 @@ func downloadIsjZip(url string) {
 	byteArray, _ := ioutil.ReadAll(resp.Body)
 	_, filename := path.Split(url)
 
-	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0666)
+	filepath := filepath.Join(isjDir, filename)
+	file, err := os.OpenFile(filepath, os.O_CREATE|os.O_WRONLY, 0777)
 
 	if err != nil {
 		fmt.Println(err)
@@ -300,10 +351,93 @@ func downloadIsjZip(url string) {
 	file.Write(byteArray)
 }
 
-func extractIsjCSV(path string) {
+func extractISJCSV(idStr string) error {
+	src := filepath.Join(isjDir, idStr+"000-17.0a.zip")
+	r, err := zip.OpenReader(src)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+	for _, f := range r.File {
+		fn := f.FileInfo().Name()
+		if strings.Contains(fn, ".csv") {
+			rf, err := f.Open()
+			if err != nil {
+				return err
+			}
+			defer rf.Close()
+
+			buf := make([]byte, f.UncompressedSize)
+			_, err = io.ReadFull(rf, buf)
+			if err != nil {
+				return err
+			}
+
+			savefn := idStr + ".csv"
+			path := filepath.Join(isjDir, savefn)
+			err = ioutil.WriteFile(path, buf, f.Mode())
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 
 }
 
-func concatIsjCSV(path string) {
+func concatISJCSV(idStr string) {
+	cp := path.Join(isjDir, idStr+".csv")
+	cf, err := os.Open(cp)
+	fmt.Println("open: " + cp)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	ccf := "isj-concat.csv"
+	ccp := path.Join(isjDir, ccf)
+	concatCSV, err := os.OpenFile(ccp, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 
+	s := bufio.NewScanner(transform.NewReader(cf, japanese.ShiftJIS.NewDecoder()))
+	for s.Scan() {
+
+		sl := strings.Split(s.Text(), ",")
+		if !strings.Contains(sl[0], "都道府県名") { //skip header
+			lat, _ := strconv.ParseFloat(strings.Replace(sl[8], "\"", "", -1), 64)
+			lng, _ := strconv.ParseFloat(strings.Replace(sl[9], "\"", "", -1), 64)
+			grid := encoder.EncodeGridLevel(lat, lng, 11)
+
+			var outputStr = make([]byte, 0, 350)
+			outputStr = append(outputStr, sl[0]...)
+			outputStr = append(outputStr, ","...)
+			outputStr = append(outputStr, sl[1]...)
+			outputStr = append(outputStr, ","...)
+			outputStr = append(outputStr, sl[2]...)
+			outputStr = append(outputStr, ","...)
+			outputStr = append(outputStr, sl[3]...)
+			outputStr = append(outputStr, ","...)
+			outputStr = append(outputStr, sl[4]...)
+			outputStr = append(outputStr, ","...)
+			outputStr = append(outputStr, sl[8]...)
+			outputStr = append(outputStr, ","...)
+			outputStr = append(outputStr, sl[9]...)
+			outputStr = append(outputStr, ",\""...)
+			outputStr = append(outputStr, grid...)
+			outputStr = append(outputStr, "\""...)
+			outputLine := string(outputStr)
+			fmt.Fprintln(concatCSV, outputLine)
+		}
+	}
+	fmt.Println("close: " + cp)
+}
+
+func deleteISJtmpFiles() {
+	delFiles, _ := ioutil.ReadDir(isjDir)
+	for _, file := range delFiles {
+		if strings.Contains(file.Name(), ".csv") && !strings.Contains(file.Name(), "concat") || strings.Contains(file.Name(), ".zip") {
+			rp := path.Join(isjDir, file.Name())
+			if err := os.RemoveAll(rp); err != nil {
+				fmt.Println(err)
+			}
+		}
+	}
 }
