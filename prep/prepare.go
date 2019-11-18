@@ -41,6 +41,27 @@ func DownloadWizard() {
 	if err != nil {
 		panic(err)
 	}
+
+	//ISJ Data
+	fISJ, err := statikFs.Open("/license_of_mlit_isj.txt")
+	if err != nil {
+		panic(err)
+	}
+	scannerISJ := bufio.NewScanner(fISJ)
+	for scannerISJ.Scan() {
+		fmt.Println(scannerISJ.Text())
+	}
+	fISJ.Close()
+
+	if util.CLIQuestion() {
+		fmt.Println("Download")
+		// TODO ISJ download
+		downloadIsj()
+	} else {
+		fmt.Println("Abort.")
+	}
+
+	//GSI Data
 	f, err := statikFs.Open("/license_of_gsi_data.txt")
 	if err != nil {
 		panic(err)
@@ -251,7 +272,12 @@ func extractCSV(src string) error {
 	return nil
 }
 
-func downloadIsj(url string) {
+func downloadIsj() {
+
+}
+
+func downloadIsjZip(url string) {
+	url := "http://nlftp.mlit.go.jp/isj/dls/data/17.0a/" + "05000-17.0a.zip"
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("Referer", "http://nlftp.mlit.go.jp/cgi-bin/isj/dls/_download_files.cgi")
 
@@ -259,8 +285,6 @@ func downloadIsj(url string) {
 	resp, _ := client.Do(req)
 
 	byteArray, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(byteArray))
-
 	_, filename := path.Split(url)
 
 	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0666)
@@ -274,4 +298,12 @@ func downloadIsj(url string) {
 	}()
 
 	file.Write(byteArray)
+}
+
+func extractIsjCSV(path string) {
+
+}
+
+func concatIsjCSV(path string) {
+
 }
