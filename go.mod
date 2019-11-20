@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/fatih/color v1.7.0
+	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/google/open-location-code/go v0.0.0-20190903173953-119bc96a3a51
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mattn/go-colorable v0.1.4 // indirect
