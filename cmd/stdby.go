@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"tadataka/stdby"
+	"tadataka/db"
 
 	"github.com/spf13/cobra"
 )
@@ -17,6 +17,6 @@ var stdbyCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		//TODO get version data from another file
 		fmt.Println("LOAD DATA TO REDIS")
-		stdby.RedisCSVLoader()
+		db.RedisCSVLoader()
 	},
 }
