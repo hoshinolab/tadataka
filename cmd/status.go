@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"tadataka/status"
 
 	"github.com/spf13/cobra"
 )
@@ -16,5 +17,6 @@ var statusCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		//TODO show Redis Status, prep data status
 		fmt.Println("LOAD DATA TO REDIS")
+		status.RedisCheck()
 	},
 }
