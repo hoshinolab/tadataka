@@ -420,10 +420,10 @@ func concatISJCSV(idStr string) {
 			outputStr = append(outputStr, sl[8]...)
 			outputStr = append(outputStr, ","...)
 			outputStr = append(outputStr, sl[9]...)
-			outputStr = append(outputStr, ",\""...)
+			outputStr = append(outputStr, ","...)
 			outputStr = append(outputStr, grid...)
-			outputStr = append(outputStr, "\""...)
 			outputLine := string(outputStr)
+			outputLine = strings.Replace(outputLine, "\"", "", -1)
 			fmt.Fprintln(concatCSV, outputLine)
 		}
 	}
