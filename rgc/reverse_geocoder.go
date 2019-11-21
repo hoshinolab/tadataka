@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"path"
 	"strconv"
 	"strings"
 	"tadataka/db"
@@ -20,17 +19,13 @@ const (
 	RAD = math.Pi / 180
 )
 
-func ReverseGeocodeCSV(inputCSVPath, outputDirPath string, latCol, lngCol int) {
+func ReverseGeocodeCSV(inputCSVPath, outputCSVPath string, latCol, lngCol int) {
 
 	inputCSV, err := os.Open(inputCSVPath)
 	if err != nil {
 		panic(err)
 	}
 
-	//TODO make and open output CSV
-
-	outputCSVFileName := "rgc.csv"
-	outputCSVPath := path.Join(outputDirPath, outputCSVFileName)
 	outputCSV, err := os.OpenFile(outputCSVPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 
 	bs := bufio.NewScanner(inputCSV)
@@ -39,7 +34,9 @@ func ReverseGeocodeCSV(inputCSVPath, outputDirPath string, latCol, lngCol int) {
 		lat, _ := strconv.ParseFloat(sl[latCol], 64)
 		lng, _ := strconv.ParseFloat(sl[lngCol], 64)
 		grid := encoder.EncodeGridLevel(lat, lng, 9)
-		possibleAddress := db.GetMembersFromList(grid, "ISJ")
+		possibleAddress := db.GetMembersFromList(grid, "JukyoJusho")
+		//TODO JukyoJusho -> ISJ (2-step)
+
 		/*
 			format
 			JukyoJusho
@@ -59,9 +56,22 @@ func ReverseGeocodeCSV(inputCSVPath, outputDirPath string, latCol, lngCol int) {
 				minDistAddr = sval[0] + sval[1] + sval[2] + sval[3] + "-" + sval[4]
 			}
 		}
-		fmt.Fprintln(outputCSV, bs.Text()+","+minDistAddr)
 
-		//TODO Write to output CSV
+		if len(possibleAddress) == 0 {
+			isjPossibleAddress := db.GetMembersFromList(grid, "ISJ")
+			for _, dbVal := range isjPossibleAddress {
+				sval := strings.Split(dbVal, ":")
+				possibleLat, _ := strconv.ParseFloat(sval[5], 64)
+				possibleLng, _ := strconv.ParseFloat(sval[6], 64)
+				possibleDist := GetDistance(lat, lng, possibleLat, possibleLng)
+				if possibleDist < minDist {
+					minDist = possibleDist
+					minDistAddr = sval[0] + sval[1] + sval[2] + sval[3] + sval[4]
+				}
+			}
+		}
+
+		fmt.Fprintln(outputCSV, bs.Text()+","+minDistAddr)
 	}
 }
 
