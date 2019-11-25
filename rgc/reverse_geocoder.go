@@ -35,7 +35,6 @@ func ReverseGeocodeCSV(inputCSVPath, outputCSVPath string, latCol, lngCol int) {
 		lng, _ := strconv.ParseFloat(sl[lngCol], 64)
 		grid := encoder.EncodeGridLevel(lat, lng, 9)
 		possibleAddress := db.GetMembersFromList(grid, "JukyoJusho")
-		//TODO JukyoJusho -> ISJ (2-step)
 
 		/*
 			format
