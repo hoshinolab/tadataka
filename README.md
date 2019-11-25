@@ -4,7 +4,7 @@
 
 tadataka is the geospatial big data preprocessing tool for Japanese geospatial data. This tool is named after [Inō Tadataka](https://en.wikipedia.org/wiki/In%C5%8D_Tadataka), or Japanese greatest surveyor.
 
-As of 25 Nov 2019, tadataka provides reverse geocoder (coordinate -> address) and subdivider for huge geospatial CSV data. In near future, this will also provide geocoder(address -> coordinate).
+As of 25 Nov 2019, tadataka provides reverse geocoder (coordinate -> address) and subdivider for huge geospatial CSV data. In near future, this will also provide geocoder (address -> coordinate).
 
 ## Installation
 
@@ -20,8 +20,16 @@ Then, you have to run Redis by `$ redis-server` command.
 
 ### tadataka
 
-Clone this repository and run `make`. Then add `./tadataka/bin` to `$PATH`. 
-Pre-compiled binaries will be distributed in this GitHub repository.
+Clone this repository and run `make build`. Then add `./.tadataka/bin` to `$PATH`. 
+
+```
+$ git clone https://github.com/hoshinolab/tadataka.git
+$ make build
+$ echo export PATH='$HOME/.tadataka/bin:$PATH' >> ~/.bash_profile
+$ source ~/.bash_profile
+```
+
+NOTE: Pre-compiled binaries will be distributed in this GitHub repository.
 
 ### tadataka Basic setup
 
@@ -36,7 +44,6 @@ After download of address-coordinate data, run `stdby` command. This loads CSV f
 ```
 $ tadataka stdby
 ```
-
 
 ## Subcommands
 
@@ -90,10 +97,9 @@ $ tadataka olc ./input/file/path.csv ./output/directory/path --lat 1 --lng 2 --h
 High speed reverse geocoder.
 
 ```sh
-$ tadataka rgc ./input/file/path.csv ./output/file/path.csv --lat 1 --lng 2 --header false
+$ tadataka rgc ./input/file/path.csv ./output/file/path.csv --lat 1 --lng 2
 ```
 
 - `lat`: (number) Column number of latitude in CSV file. (begin from `0`)
 - `lng`: (number) Column number of longitude in CSV file. (begin from `0`)
     - In CSV file like `user000,30.123456,145.456789,10,true`, `lat` is `1` and `lng` is `2`.
-- `header`: (boolean) Whether CSV files have a header row or not. (default: `true`)
