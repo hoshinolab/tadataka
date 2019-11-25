@@ -9,17 +9,17 @@ import (
 )
 
 func init() {
-	olcCmd.PersistentFlags().String("config", "", "set config file path (JSON)")
-	olcCmd.PersistentFlags().Int("lat", 1, "Column number of latitude in CSV file. (begin from 0)")
-	olcCmd.PersistentFlags().Int("lng", 2, "Column number of longitude in CSV file. (begin from 0)")
-	olcCmd.PersistentFlags().Bool("header", true, "Whether CSV files have a header row or not. (default: true)")
-	rootCmd.AddCommand(olcCmd)
+	subdivCmd.PersistentFlags().String("config", "", "set config file path (JSON)")
+	subdivCmd.PersistentFlags().Int("lat", 1, "Column number of latitude in CSV file. (begin from 0)")
+	subdivCmd.PersistentFlags().Int("lng", 2, "Column number of longitude in CSV file. (begin from 0)")
+	subdivCmd.PersistentFlags().Bool("header", true, "Whether CSV files have a header row or not. (default: true)")
+	rootCmd.AddCommand(subdivCmd)
 }
 
 // TODO: Replace to "subdiv"
 
-var olcCmd = &cobra.Command{
-	Use:   "olc",
+var subdivCmd = &cobra.Command{
+	Use:   "subdiv",
 	Short: "Subdivide geospatial CSV file with Open Location Code (OLC)",
 	Run: func(cmd *cobra.Command, args []string) {
 

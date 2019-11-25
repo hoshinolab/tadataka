@@ -1,27 +1,31 @@
-# Tadataka
+# tadataka
 
 ![logo](./docs/tadataka-logo-small.png)
 
-Tadataka is the geospatial big data preprocessing tool. This tool is named after [Inō Tadataka](https://en.wikipedia.org/wiki/In%C5%8D_Tadataka), or Japanese greatest surveyor.
+tadataka is the geospatial big data preprocessing tool. This tool is named after [Inō Tadataka](https://en.wikipedia.org/wiki/In%C5%8D_Tadataka), or Japanese greatest surveyor.
 
 ## Installation
 
-//TODO
+Currently, tadataka only support UNIX-like OS. (GNU/Linux is recommended.) Windows will be supported soon.
 
-## Usage
+### Redis
 
-### Basic setup
+tadataka uses an in-memory database engine Redis to store address-coordinate data. Therefore you have to install Redis at first.
 
-```
-$ tadataka prep
-$ tadataka stdby
-```
+- [Redis](https://redis.io/)
+
+Then, you have to run Redis by `$ redis-server` command.
+
+### tadataka
+
+Clone this repository and run `make`. Then add `./tadataka/bin` to `$PATH`. 
+Pre-compiled binaries will be distributed in this GitHub repository.
 
 ## Subcommands
 
 Tadataka has sub commands.
 
-- `prep`: create `~/.tadataka` direcotry and download address-coordinate data from Geospatial Information Authority of Japan (国土地理院, GSI) for geocoding/reverse geocoding.
+- `download`: download Japanese address-coordinate data in `~/.tadataka`.
 - `stdby`: import address-coordinate data from `~/.tadataka` to Redis. This subcommand is required to execute `gc` and `rgc`
 - `subdiv`: subdivide large CSV file(s) into small CSV files with [Open Location Code (plus codes)](https://en.wikipedia.org/wiki/Open_Location_Code).
     - former: `olc`
@@ -29,7 +33,21 @@ Tadataka has sub commands.
 - `rgc`: reverse geocoder
 - `version`: show version of Tadataka
 
-### `prep`
+
+## Usage
+
+### Basic setup
+
+tadataka requires 
+
+```
+$ tadataka download
+$ tadataka stdby
+```
+
+
+
+### `download`
 
 **requirement** : nothing (enough disk space)
 
@@ -50,7 +68,7 @@ $ tadataka stdby
 ```
 
 
-### `subdivide`
+### `subdiv`
 
 **requirement** : nothing (only target CSV files and enough disk space)
 

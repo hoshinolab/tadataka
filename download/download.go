@@ -1,4 +1,4 @@
-package prep
+package download
 
 import (
 	"archive/zip"
