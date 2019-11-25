@@ -16,9 +16,9 @@ func init() {
 
 var rgcCmd = &cobra.Command{
 	Use:   "rgc",
-	Short: "reverse geocoder",
+	Short: "Reverse geocoder",
 	Run: func(cmd *cobra.Command, args []string) {
-		color.Blue("TADATAKA Reverse Geocoder")
+		color.Blue("Reverse Geocoder")
 		inputFilePath := args[0]
 		outputDirPath := args[1]
 

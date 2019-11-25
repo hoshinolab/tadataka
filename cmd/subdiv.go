@@ -21,7 +21,7 @@ var subdivCmd = &cobra.Command{
 	Short: "Subdivide geospatial CSV file with Open Location Code (OLC)",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		color.Blue("TADATAKA OLC Encoder")
+		color.Blue("Huge CSV Subdivider")
 		configPath, err := cmd.PersistentFlags().GetString("config")
 		if err != nil {
 			fmt.Println("[TADATAKA] Flag Parse Error:", err)

@@ -15,7 +15,7 @@ var downloadCmd = &cobra.Command{
 	Use:   "download",
 	Short: "Prepare for geocoding/reverse geocofing to download address data",
 	Run: func(cmd *cobra.Command, args []string) {
-		color.Blue("TADATAKA Preparing Tool")
+		color.Blue("GSI/MLIT downloader")
 		download.DownloadWizard()
 	},
 }

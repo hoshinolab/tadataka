@@ -12,9 +12,9 @@ func init() {
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Print the version number of Tadataka",
+	Short: "Print the version number of tadataka",
 	Run: func(cmd *cobra.Command, args []string) {
 		//TODO get version data from another file
-		fmt.Println("TADATAKA Ver0.x")
+		fmt.Println("tadataka Version 0.x")
 	},
 }

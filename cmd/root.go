@@ -10,12 +10,12 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "tadataka",
-	Short: "Tadataka is a CLI tool designated to preprocess geo big data.",
-	Long: `Tadataka is a CLI tool designated to preprocess geo big data.
-				  developed by ryo-a`,
+	Short: "tadataka is a CLI tool designated to preprocess geospatial big data.",
+	Long: `tadataka is a CLI tool designated to preprocess geospatial big data.
+developed by ryo-a (Keio Univ. Econ. Hoshino Lab. / RIKEN AIP Center)`,
 	Run: func(cmd *cobra.Command, args []string) {
-		color.Blue("TADATAKA: Geospatial Big Data Preprocessing Tool")
-		fmt.Println("Please designate subcommand to run TADATAKA")
+		color.Blue("tadataka: Geospatial Big Data Preprocessing Tool")
+		fmt.Println("Please designate subcommand to run tadataka")
 	},
 }
 
