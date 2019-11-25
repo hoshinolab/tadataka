@@ -9,6 +9,8 @@ import (
 )
 
 func init() {
+	rgcCmd.PersistentFlags().Int("lat", 1, "Column number of latitude in CSV file. (begin from 0)")
+	rgcCmd.PersistentFlags().Int("lng", 2, "Column number of longitude in CSV file. (begin from 0)")
 	rootCmd.AddCommand(rgcCmd)
 }
 
@@ -20,9 +22,19 @@ var rgcCmd = &cobra.Command{
 		inputFilePath := args[0]
 		outputDirPath := args[1]
 
-		//rgc.reverseGeocoder(inputFilePath, outputDirPath)
+		latCol, err := cmd.PersistentFlags().GetInt("lat")
+		if err != nil {
+			fmt.Println("[TADATAKA] Flag Parse Error:", err)
+			return
+		}
+
+		lngCol, err := cmd.PersistentFlags().GetInt("lng")
+		if err != nil {
+			fmt.Println("[TADATAKA] Flag Parse Error:", err)
+			return
+		}
 		fmt.Println(inputFilePath, outputDirPath)
-		rgc.ReverseGeocodeCSV(inputFilePath, outputDirPath, 4, 3)
+		rgc.ReverseGeocodeCSV(inputFilePath, outputDirPath, latCol, lngCol)
 
 	},
 }
