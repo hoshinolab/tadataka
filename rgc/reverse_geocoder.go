@@ -49,7 +49,7 @@ func ReverseGeocodeCSV(inputCSVPath, outputCSVPath string, latCol, lngCol int) {
 			sval := strings.Split(dbVal, ":")
 			possibleLat, _ := strconv.ParseFloat(sval[5], 64)
 			possibleLng, _ := strconv.ParseFloat(sval[6], 64)
-			possibleDist := GetDistance(lat, lng, possibleLat, possibleLng)
+			possibleDist := GetPythagoreanDistance(lat, lng, possibleLat, possibleLng)
 			if possibleDist < minDist {
 				minDist = possibleDist
 				minDistAddr = sval[0] + sval[1] + sval[2] + sval[3] + "-" + sval[4]
@@ -62,7 +62,7 @@ func ReverseGeocodeCSV(inputCSVPath, outputCSVPath string, latCol, lngCol int) {
 				sval := strings.Split(dbVal, ":")
 				possibleLat, _ := strconv.ParseFloat(sval[5], 64)
 				possibleLng, _ := strconv.ParseFloat(sval[6], 64)
-				possibleDist := GetDistance(lat, lng, possibleLat, possibleLng)
+				possibleDist := GetPythagoreanDistance(lat, lng, possibleLat, possibleLng)
 				if possibleDist < minDist {
 					minDist = possibleDist
 					minDistAddr = sval[0] + sval[1] + sval[2] + sval[3] + sval[4]
@@ -74,18 +74,21 @@ func ReverseGeocodeCSV(inputCSVPath, outputCSVPath string, latCol, lngCol int) {
 	}
 }
 
-func GetDistance(originLat, originLng, destLat, destLng float64) float64 {
-	// Hubeny Standard Formula
-	// D = \sqrt{(D_y \times M)^2 + (D_x \times N \times \cos P)^2}
-	// D_x : difference of longitude between two coordinates
-	// D_y : difference of latitude between two coordinates
-	// P: average of two latitudes
-	// M = \frac{R_x(1-E^2)}{W^3}: Curvature radius of meridian
-	// W = \sqrt{1-E^2 \times \sin^2 P}
-	// N : Curvature radius of Prime vertical
-	// E = \sqrt{\frac{R_x^2-R_y^2}{R_x^2}} : Eccentricity
-	// R_x: Equatorial radius
-	// R_y: Polar radius
+// GetHubenyDistance get distance by Hubeny Formula
+/*
+三浦 (2015) 緯度経度を用いた3つの距離計算方法 より
+D = \sqrt{(D_y \times M)^2 + (D_x \times N \times \cos P)^2}
+D_x : difference of longitude between two coordinates
+D_y : difference of latitude between two coordinates
+P: average of two latitudes
+M = \frac{R_x(1-E^2)}{W^3}: Curvature radius of meridian
+W = \sqrt{1-E^2 \times \sin^2 P}
+N : Curvature radius of Prime vertical
+E = \sqrt{\frac{R_x^2-R_y^2}{R_x^2}} : Eccentricity
+R_x: Equatorial radius
+R_y: Polar radius
+*/
+func GetHubenyDistance(originLat, originLng, destLat, destLng float64) float64 {
 	originLatRad := originLat * math.Pi / 180
 	originLngRad := originLng * math.Pi / 180
 	destLatRad := destLat * math.Pi / 180
@@ -98,5 +101,12 @@ func GetDistance(originLat, originLng, destLat, destLng float64) float64 {
 	N := R_x / W
 	D := math.Sqrt((D_y*M)*(D_y*M) + (D_x*N*math.Cos(P))*(D_x*N*math.Cos(P)))
 
+	return D
+}
+
+func GetPythagoreanDistance(originLat, originLng, destLat, destLng float64) float64 {
+	deltaX := math.Abs(originLat - destLat)
+	deltaY := math.Abs(originLng - destLng)
+	D := math.Sqrt(deltaX*deltaX + deltaY*deltaY)
 	return D
 }
